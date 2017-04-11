@@ -10,18 +10,22 @@ set(CMAKE_EXE_LINKER_FLAGS "-g")
 
 set(CMAKE_CXX_STANDARD 14)
 
-find_package(Threads REQUIRED)
+find_package(CUDA QUIET REQUIRED)
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
+link_directories("/usr/local/cuda/lib64")
 
-set(TARGET monte_carlo_cpu)
-add_executable(${TARGET} ${CMAKE_SOURCE_DIR}/main.cpp)
-if(THREADS_HAVE_PTHREAD_ARG)
-    set_property(TARGET ${TARGET} PROPERTY COMPILE_OPTIONS "-pthread")
-    set_property(TARGET ${TARGET} PROPERTY INTERFACE_COMPILE_OPTIONS "-pthread")
-endif()
-if(CMAKE_THREAD_LIBS_INIT)
-    target_link_libraries(${TARGET} "${CMAKE_THREAD_LIBS_INIT}")
-endif()
+set(CUDA_NVCC_FLAGS
+    ${CUDA_NVCC_FLAGS};
+    #"-arch=sm_35"
+    "-g -G"
+    "-std=c++11"
+    "-Xptxas -v"
+    )
 
+SET(CUDA_PROPAGATE_HOST_FLAGS OFF)
+
+cuda_compile(DRIVER_O ${CMAKE_SOURCE_DIR}/main.cu)
+cuda_add_executable(monte_carlo_gpu ${DRIVER_O})
+target_link_libraries(monte_carlo_gpu -lcurand)
 

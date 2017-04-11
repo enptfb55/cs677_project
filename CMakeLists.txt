@@ -1,0 +1,27 @@
+cmake_minimum_required(VERSION 3.5.0)
+project(static_poly)
+
+set(WARNING_FLAGS "-Wall -Wextra -Wfatal-errors -Werror")
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WARNING_FLAGS} -g")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g3")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNDEBUG -O3")
+set(CMAKE_EXE_LINKER_FLAGS "-g")
+
+set(CMAKE_CXX_STANDARD 14)
+
+find_package(Threads REQUIRED)
+
+include_directories(${CMAKE_SOURCE_DIR}/include)
+
+set(TARGET monte_carlo_cpu)
+add_executable(${TARGET} ${CMAKE_SOURCE_DIR}/main.cpp)
+if(THREADS_HAVE_PTHREAD_ARG)
+    set_property(TARGET ${TARGET} PROPERTY COMPILE_OPTIONS "-pthread")
+    set_property(TARGET ${TARGET} PROPERTY INTERFACE_COMPILE_OPTIONS "-pthread")
+endif()
+if(CMAKE_THREAD_LIBS_INIT)
+    target_link_libraries(${TARGET} "${CMAKE_THREAD_LIBS_INIT}")
+endif()
+
+

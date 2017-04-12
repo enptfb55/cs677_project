@@ -51,14 +51,14 @@ int main(int argc, char* argv[])
 
     //std::string config_path(argv[1]);
 
-    size_t num_paths = 100000;   // Number of simulated asset paths
-    size_t num_steps = 365;
+    size_t num_paths = 10000000;   // Number of simulated asset paths
+    size_t num_steps = 1;
     size_t num_normals = num_paths * num_steps;
-    double S = 143.34;  // Option price
-    double K = 119.0;  // Strike price
-    double r = 0.10304;   // Risk-free rate (5%)
-    double v = 0.48;    // Volatility of the underlying (20%)
-    double T = 1/12;    // One year until expiry
+    double S = 100.0;  // Option price
+    double K = 100.0;  // Strike price
+    double r = 0.05;   // Risk-free rate (5%)
+    double v = 0.2;    // Volatility of the underlying (20%)
+    double T = 1;    // One year until expiry
     float dt = float(T)/float(num_steps);
     float sqrdt = sqrt(dt);
 
@@ -76,7 +76,7 @@ int main(int argc, char* argv[])
     monte_carlo_cpu.calculate(num_normals, S, K, r, v, T);
 
     MonteCarloGPU monte_carlo_gpu(&d_normals);
-    monte_carlo_gpu.calculate(num_normals, num_paths, S, K, r, v, T);
+    monte_carlo_gpu.calculate(num_steps, num_paths, S, K, r, v, T);
 
     return 0;
 }

@@ -21,50 +21,69 @@ public:
     }
 
 private:
-    double call_price(const int& num_sims, const double& S, const double& K, const double& r, const double& v, const double& T) 
+    double call_price(const double S,
+                      const double K,
+                      const double r,
+                      const double v,
+                      const double T,
+                      const size_t num_steps,
+                      const size_t num_paths)
     {
         double S_adjust = S * exp(T*(r-0.5*v*v));
         double S_cur = 0.0;
         double payoff_sum = 0.0;
 
-        for (int i=0; i<num_sims; i++) {
+        for (int i = 0; i < num_paths; i++) {
             S_cur = S_adjust * exp(sqrt(v*v*T)*m_normals[i]);
             payoff_sum += std::max(S_cur - K, 0.0);
         }
 
-        return (payoff_sum / static_cast<double>(num_sims)) * exp(-r*T);
+        return (payoff_sum / static_cast<double>(num_steps * num_paths)) * exp(-r*T);
     }
 
-    double put_price(const int& num_sims, const double& S, const double& K, const double& r, const double& v, const double& T) 
+    double put_price(const double S,
+                     const double K,
+                     const double r,
+                     const double v,
+                     const double T,
+                     const size_t num_steps,
+                     const size_t num_paths)
     {
         double S_adjust = S * exp(T*(r-0.5*v*v));
         double S_cur = 0.0;
         double payoff_sum = 0.0;
 
-        for (int i=0; i<num_sims; i++) {
+        for (int i = 0; i < (num_steps * num_paths); i++) {
             S_cur = S_adjust * exp(sqrt(v*v*T)*m_normals[i]);
             payoff_sum += std::max(K - S_cur, 0.0);
         }
 
-        return (payoff_sum / static_cast<double>(num_sims)) * exp(-r*T);
+        return (payoff_sum / static_cast<double>(num_steps * num_paths)) * exp(-r*T);
     }
 
 public:
-    void calculate(size_t num_sims, double S, double K, double r, double v, double T)
+    void calculate(size_t num_steps, 
+                   size_t num_paths, 
+                   double S, 
+                   double K, 
+                   double r, 
+                   double v, 
+                   double T)
     {
         struct timespec start_ts, end_ts;
 
-        clock_gettime(CLOCK_MONOTONIC, &start_ts);  
+        clock_gettime(CLOCK_MONOTONIC, &start_ts);
 
         // Then we calculate the call/put values via Monte Carlo
-        double call = call_price(num_sims, S, K, r, v, T);
-        double put = put_price(num_sims, S, K, r, v, T);
+        double call = call_price(S, K, r, v, T, num_steps, num_paths);
+        double put = put_price(S, K, r, v, T, num_steps, num_paths);
 
         clock_gettime(CLOCK_MONOTONIC, &end_ts);
 
 
         std::cout << "==== CPU Results =====" << std::endl;
-        std::cout << "Number of Paths:      " << num_sims << std::endl;
+        std::cout << "Number of Paths:      " << num_paths << std::endl;
+        std::cout << "Number of Steps:      " << num_steps << std::endl;
         std::cout << "Underlying:           " << S << std::endl;
         std::cout << "Strike:               " << K << std::endl;
         std::cout << "Risk-Free Rate:       " << r << std::endl;

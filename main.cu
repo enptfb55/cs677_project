@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
     d_normals.get(&h_normals[0], num_normals);
 
     MonteCarloCPU monte_carlo_cpu(h_normals);
-    monte_carlo_cpu.calculate(num_normals, S, K, r, v, T);
+    monte_carlo_cpu.calculate(num_steps, num_paths, S, K, r, v, T);
 
     MonteCarloGPU monte_carlo_gpu(&d_normals);
     monte_carlo_gpu.calculate(num_steps, num_paths, S, K, r, v, T);

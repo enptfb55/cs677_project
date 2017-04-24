@@ -78,7 +78,13 @@ public:
     }
 
 public:
-    void calculate(size_t num_steps, size_t num_paths, double S, double K, double r, double v, double T)
+    void calculate(size_t num_steps, 
+                   size_t num_paths, 
+                   double S, 
+                   double K, 
+                   double r, 
+                   double v, 
+                   double T)
     {
         const size_t block_size =1024;
         const size_t grid_size = ceil(float(num_paths)/float(block_size));
@@ -94,7 +100,6 @@ public:
 
         cudaDeviceSynchronize();
 
-        clock_gettime(CLOCK_MONOTONIC, &end_ts);
 
         std::vector<float> h_call_output(num_paths);
         std::vector<float> h_put_output(num_paths);
@@ -113,9 +118,11 @@ public:
         }
         put /= num_paths;
 
+        clock_gettime(CLOCK_MONOTONIC, &end_ts);
 
         std::cout << "==== GPU Results =====" << std::endl;
-        std::cout << "Number of Paths:      " << num_steps * num_paths << std::endl;
+        std::cout << "Number of Paths:      " << num_paths << std::endl;
+        std::cout << "Number of Steps:      " << num_steps << std::endl;
         std::cout << "Underlying:           " << S << std::endl;
         std::cout << "Strike:               " << K << std::endl;
         std::cout << "Risk-Free Rate:       " << r << std::endl;

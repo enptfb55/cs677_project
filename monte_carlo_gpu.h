@@ -22,7 +22,7 @@ __global__ void call_price(float *d_output,
     double S_cur = 0.0;
     double payoff_sum = 0.0;
 
-    if (n_idx <  num_paths) {
+    if (n_idx < num_paths) {
         int n = 0;
         do {
             S_cur = S_adjust * exp(sqrt(v*v*T)*d_normals[n_idx]);
@@ -53,7 +53,7 @@ __global__ void put_price(float *d_output,
     double S_cur = 0.0;
     double payoff_sum = 0.0;
 
-    if (n_idx <  num_paths) {
+    if (n_idx < num_paths) {
         int n = 0;
         do {
             S_cur = S_adjust * exp(sqrt(v*v*T)*d_normals[n_idx]);

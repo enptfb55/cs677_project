@@ -33,7 +33,7 @@ private:
         double S_cur = 0.0;
         double payoff_sum = 0.0;
 
-        for (int i = 0; i < num_paths; i++) {
+        for (int i = 0; i < (num_steps * num_paths); i++) {
             S_cur = S_adjust * exp(sqrt(v*v*T)*m_normals[i]);
             payoff_sum += std::max(S_cur - K, 0.0);
         }

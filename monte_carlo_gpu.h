@@ -5,6 +5,36 @@
 
 #include "device_array.h"
 
+__global__ void reduce_price(float *d_price_array, unsigned int n)
+{
+    extern __shared__ float sdata[];
+
+    // load shared mem
+    unsigned int tid = threadIdx.x;
+    unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
+
+    sdata[tid] = (i < n) ? d_price_array[i] : 0;
+
+    __syncthreads();
+
+    // do reduction in shared mem
+    for (unsigned int s=blockDim.x/2; s>0; s>>=1)
+    {
+        if (tid < s)
+        {
+            sdata[tid] += sdata[tid + s];
+        }
+
+        __syncthreads();
+    }
+
+    // write result for this block to global mem
+    if (tid == 0)
+        atomicAdd(&d_price_array[0], sdata[0]);
+
+}
+
+
 __global__ void call_price(float *d_output, 
                            float *d_normals, 
                            double S,
@@ -86,8 +116,10 @@ public:
                    double v, 
                    double T)
     {
-        const size_t block_size =1024;
+        const size_t block_size = 1024;
         const size_t grid_size = ceil(float(num_paths)/float(block_size));
+        const size_t shm_size = (size_t)block_size * sizeof(int);
+
         struct timespec start_ts, end_ts;
 
         DeviceArray<float> d_call_output(num_paths);
@@ -98,24 +130,22 @@ public:
         call_price<<<grid_size, block_size>>>(d_call_output.get_data(), m_normals->get_data(), S, K, r, v, T, num_steps, num_paths);
         put_price<<<grid_size, block_size>>>(d_put_output.get_data(), m_normals->get_data(), S, K, r, v, T, num_steps, num_paths);
 
-        cudaDeviceSynchronize();
+        reduce_price<<<grid_size, block_size, shm_size>>>(d_call_output.get_data(), num_paths);
+        reduce_price<<<grid_size, block_size, shm_size>>>(d_put_output.get_data(), num_paths);
 
+        cudaDeviceSynchronize();
 
         std::vector<float> h_call_output(num_paths);
         std::vector<float> h_put_output(num_paths);
 
         d_call_output.get(&h_call_output[0], num_paths);
         d_put_output.get(&h_put_output[0], num_paths);
-        double call = 0.0;
-        for(size_t i=0; i < num_paths; i++) {
-            call += h_call_output[i];
-        }
+
+        double call = h_call_output[0];
         call/=num_paths;
 
         double put = 0.0;
-        for(size_t i=0; i < num_paths; i++) {
-            put += h_put_output[i];
-        }
+        put = h_put_output[0];
         put /= num_paths;
 
         clock_gettime(CLOCK_MONOTONIC, &end_ts);

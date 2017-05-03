@@ -120,6 +120,10 @@ public:
         const size_t grid_size = ceil(float(num_paths)/float(block_size));
         const size_t shm_size = (size_t)block_size * sizeof(int);
 
+        std::cout << "block_size=" << block_size << std::endl;
+        std::cout << "grid_size="  << grid_size << std::endl;
+        std::cout << "shm_size=" << shm_size << std::endl;
+
         struct timespec start_ts, end_ts;
 
         DeviceArray<float> d_call_output(num_paths);
@@ -135,11 +139,11 @@ public:
 
         cudaDeviceSynchronize();
 
-        std::vector<float> h_call_output(num_paths);
-        std::vector<float> h_put_output(num_paths);
+        std::vector<float> h_call_output(1);
+        std::vector<float> h_put_output(1);
 
-        d_call_output.get(&h_call_output[0], num_paths);
-        d_put_output.get(&h_put_output[0], num_paths);
+        d_call_output.get(&h_call_output[0], 1);
+        d_put_output.get(&h_put_output[0], 1);
 
         double call = h_call_output[0];
         call/=num_paths;
